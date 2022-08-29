@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:core';
-import 'dart:typed_data';
+// import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
@@ -9,15 +9,18 @@ import 'package:web_socket_channel/io.dart';
 import 'package:walletconnect_dart/walletconnect_dart.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:convert/convert.dart';
+import 'package:todo_dapp/TodoListModelBase.dart';
+import 'package:todo_dapp/Task.dart';
 
-class TodoListModel extends ChangeNotifier {
+class TodoListModel extends ChangeNotifier implements TodoListModelBase {
+  @override
   List<Task> todos = [];
+  @override
   bool isLoading = true;
+  @override
   int taskCount = 0;
 
   String _ownAddress;
-  // Provider _web3provider = null;
-  // Signer _signer = null;
   //local ganache
   // final String _rpcUrl = "http://127.0.0.1:7545";
   // final String _wsUrl = "ws://127.0.0.1:7545/";
@@ -46,15 +49,17 @@ class TodoListModel extends ChangeNotifier {
   ContractFunction _deleteTask;
   ContractFunction _toggleComplete;
 
-  EthereumWalletConnectProvider _provider;
+  // EthereumWalletConnectProvider _provider;
   WalletConnect _connector;
 
   TodoListModel() {
     init();
   }
 
-  bool get isConnected => _connector != null && _connector.connected;
+  @override
+  get isConnected => _connector != null && _connector.connected;
   String _externalWalletUri = '';
+  @override
   Future<void> callExternalWallet() async {
     // const String prefix = 'https://metamask.app.link/dapp';
     debugPrint("callExternalWallet: $_externalWalletUri");
@@ -65,9 +70,10 @@ class TodoListModel extends ChangeNotifier {
     }
   }
 
+  // @override
   Future<void> test() async {
     debugPrint("test2");
-    _provider = EthereumWalletConnectProvider(_connector, chainId: _chainId);
+    // _provider = EthereumWalletConnectProvider(_connector, chainId: _chainId);
     String from = _ownAddress;
     String to = '0x43CA6B6f0AAF1B8d2A5FBFC1049c37f9Ad6b802C';
     String value = '0x${555000.toRadixString(16)}';
@@ -189,6 +195,7 @@ class TodoListModel extends ChangeNotifier {
     // await getTodos();
   }
 
+  @override
   Future<void> connectWallet() async {
     debugPrint("connectWallet");
 
@@ -214,7 +221,7 @@ class TodoListModel extends ChangeNotifier {
         debugPrint("Please change current chainId to $_chainId");
       }
       // isConnected = true;
-      _provider = EthereumWalletConnectProvider(_connector, chainId: _chainId);
+      // _provider = EthereumWalletConnectProvider(_connector, chainId: _chainId);
       getTodos();
     });
 
@@ -242,12 +249,13 @@ class TodoListModel extends ChangeNotifier {
 //     connector.killSession();
   }
 
+  @override
   Future<void> disConnectWallet() async {
     if (isConnected) {
       isLoading = true;
       notifyListeners();
       await _connector.killSession();
-      _provider = null;
+      // _provider = null;
       await getTodos();
     }
   }
@@ -305,6 +313,7 @@ class TodoListModel extends ChangeNotifier {
     // await testWalletConnect();
   }
 
+  @override
   getTodos() async {
     debugPrint("gettodos");
 
@@ -354,7 +363,7 @@ class TodoListModel extends ChangeNotifier {
         );
       }
       else {
-        print('i = $i, null found');
+        debugPrint('i = $i, null found');
       }
     }
     isLoading = false;
@@ -362,7 +371,7 @@ class TodoListModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> waitTransaction(String txHash) async {
+  Future<bool> _waitTransaction(String txHash) async {
     debugPrint("[waitTransaction] $txHash");
     for (int i = 0; i < 10; i++) {
       TransactionReceipt receipt = await _client.getTransactionReceipt(txHash);
@@ -376,47 +385,51 @@ class TodoListModel extends ChangeNotifier {
     }
     return false;
   }
-  //
+
+  @override
   addTask(String taskNameData) async {
     isLoading = true;
     notifyListeners();
     debugPrint("addTask");
     var txHash = await ethSendTxWrapped(_connector, _ownAddress, _contractAddress.toString(), _createTask, [taskNameData]);
     debugPrint("txHash: $txHash");
-    final receipt = await waitTransaction(txHash);
+    final receipt = await _waitTransaction(txHash);
     debugPrint("receipt: $receipt");
     await getTodos();
   }
 
+  @override
   updateTask(int id, String taskNameData) async {
     isLoading = true;
     notifyListeners();
     debugPrint("updateTask");
     var txHash = await ethSendTxWrapped(_connector, _ownAddress, _contractAddress.toString(), _updateTask, [BigInt.from(id), taskNameData]);
     debugPrint("txHash: $txHash");
-    final receipt = await waitTransaction(txHash);
+    final receipt = await _waitTransaction(txHash);
     debugPrint("receipt: $receipt");
     await getTodos();
   }
 
+  @override
   deleteTask(int id) async {
     isLoading = true;
     notifyListeners();
     debugPrint("deleteTask");
     var txHash = await ethSendTxWrapped(_connector, _ownAddress, _contractAddress.toString(), _deleteTask, [BigInt.from(id)]);
     debugPrint("txHash: $txHash");
-    final receipt = await waitTransaction(txHash);
+    final receipt = await _waitTransaction(txHash);
     debugPrint("receipt: $receipt");
     await getTodos();
   }
 
+  @override
   toggleComplete(int id) async {
     isLoading = true;
     notifyListeners();
     debugPrint("toggleComplete");
     var txHash = await ethSendTxWrapped(_connector, _ownAddress, _contractAddress.toString(), _toggleComplete, [BigInt.from(id)]);
     debugPrint("txHash: $txHash");
-    final receipt = await waitTransaction(txHash);
+    final receipt = await _waitTransaction(txHash);
     debugPrint("receipt: $receipt");
     await getTodos();
   }
@@ -425,6 +438,8 @@ class TodoListModel extends ChangeNotifier {
     if (!isConnected) {
       debugPrint("try to connect wallet first");
       await connectWallet();
+      connector = _connector;
+      fromAddress = _connector.session.accounts[0];
     }
     debugPrint("[ethSendTxWrapped] fn=$fn, params=$params");
     String data = hex.encode(List<int>.from(fn.encodeCall(params)));
@@ -462,9 +477,3 @@ class TodoListModel extends ChangeNotifier {
 
 }
 
-class Task {
-  final int id;
-  final String taskName;
-  final bool isCompleted;
-  Task({this.id, this.taskName, this.isCompleted});
-}

@@ -4,21 +4,23 @@ import 'package:js/js.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
-// import 'package:web3dart/web3dart.dart';
-import 'package:web_socket_channel/io.dart';
+import 'package:todo_dapp/TodoListModelBase.dart';
+import 'package:todo_dapp/Task.dart';
 import 'package:flutter_web3/flutter_web3.dart';
-// import 'dart:io' if (dart.library.io) 'package:walletconnect_dart/walletconnect_dart.dart';
-// import 'package:flutter_web3/flutter_web3.dart';
 
-class TodoListModel extends ChangeNotifier {
+class TodoListModel extends ChangeNotifier implements TodoListModelBase{
+  @override
   List<Task> todos = [];
+  @override
   bool isLoading = true;
+  @override
   int taskCount = 0;
 
+  @override
   bool isConnected = false;
 
   String _ownAddress = "";
-  Provider _web3provider = null;
+  Web3Provider _web3provider = null;
   Signer _signer = null;
   //local ganache
   // final String _rpcUrl = "http://127.0.0.1:7545";
@@ -53,67 +55,74 @@ class TodoListModel extends ChangeNotifier {
 
   }
 
+  @override
   Future<void> disConnectWallet() async {
-
   }
+
+  @override
   Future<void> connectWallet() async {
   }
+
+  @override
+  Future<void> callExternalWallet() async {
+  }
+
   Future<void> init() async {
     debugPrint("TodoListModel_metamask init");
 
-    // // `Ethereum.isSupported` is the same as `ethereum != null`
-    // if (ethereum != null) {
-    //   try {
-    //     // Prompt user to connect to the provider, i.e. confirm the connection modal
-    //     final accs = await ethereum.requestAccount(); // Get all accounts in node disposal
-    //     debugPrint("get accounts from metamask: $accs");
-    //     int chainId = await ethereum.getChainId();
-    //     if (_chainId != chainId) {
-    //       debugPrint("current chainId is $chainId, expect $_chainId, try switchChain");
-    //       ethereum.walletSwitchChain(_chainId);
-    //     }
-    //     _ownAddress = accs[0]; // [foo,bar]
-    //
-    //     if (ethereum == null) {
-    //       print("oops ethereum is null");
-    //     }
-    //     _web3provider = Web3Provider.fromEthereum(ethereum);
-    //     print(_web3provider.toString());
-    //
-    //     int bn = await _web3provider.getBlockNumber(); // 9261427
-    //     debugPrint("bn: $bn");
-    //
-    //     // Subscribe to `chainChanged` event
-    //     ethereum.onChainChanged((chainId) {
-    //       if (_chainId != chainId) {
-    //         debugPrint("onChainChanged: current chainId is $chainId, expect $_chainId, try switchChain");
-    //         ethereum.walletSwitchChain(_chainId);
-    //       }
-    //     });
-    //
-    //     // Subscribe to `accountsChanged` event.
-    //     ethereum.onAccountsChanged((accounts) {
-    //       print("onAccountsChanged: $accounts"); // ['0xbar']
-    //     });
-    //
-    //     // Subscribe to `message` event, need to convert JS message object to dart object.
-    //     ethereum.on('message', (message) {
-    //       print("on message: ${dartify(message)}"); // baz
-    //     });
-    //
-    //   } on EthereumUserRejected {
-    //     print('User rejected the modal');
-    //   }
-    // }
-    //
-    // // Get signer from provider
-    // final signer = _web3provider.getSigner();
+    // `Ethereum.isSupported` is the same as `ethereum != null`
+    if (ethereum != null) {
+      try {
+        // Prompt user to connect to the provider, i.e. confirm the connection modal
+        final accs = await ethereum.requestAccount(); // Get all accounts in node disposal
+        debugPrint("get accounts from metamask: $accs");
+        int chainId = await ethereum.getChainId();
+        if (_chainId != chainId) {
+          debugPrint("current chainId is $chainId, expect $_chainId, try switchChain");
+          ethereum.walletSwitchChain(_chainId);
+        }
+        _ownAddress = accs[0]; // [foo,bar]
+
+        if (ethereum == null) {
+          print("oops ethereum is null");
+        }
+        _web3provider = Web3Provider.fromEthereum(ethereum);
+        print(_web3provider.toString());
+
+        int bn = await _web3provider.getBlockNumber(); // 9261427
+        debugPrint("bn: $bn");
+
+        // Subscribe to `chainChanged` event
+        ethereum.onChainChanged((chainId) {
+          if (_chainId != chainId) {
+            debugPrint("onChainChanged: current chainId is $chainId, expect $_chainId, try switchChain");
+            ethereum.walletSwitchChain(_chainId);
+          }
+        });
+
+        // Subscribe to `accountsChanged` event.
+        ethereum.onAccountsChanged((accounts) {
+          print("onAccountsChanged: $accounts"); // ['0xbar']
+        });
+
+        // Subscribe to `message` event, need to convert JS message object to dart object.
+        ethereum.on('message', (message) {
+          print("on message: ${dartify(message)}"); // baz
+        });
+
+      } on EthereumUserRejected {
+        print('User rejected the modal');
+      }
+    }
+
+    // Get signer from provider
+    _signer = _web3provider.getSigner();
 
     //for test 方便调试 todo
-    final wallet = Wallet("865b87c8ef6e108fb3f700b99cd68e5d57c408d6114851780dbc580be595c0eb");
-    // Connect wallet to network
-    _web3provider = JsonRpcProvider('https://data-seed-prebsc-2-s2.binance.org:8545/');
-    _signer = wallet.connect(_web3provider);
+    // final wallet = Wallet("865b87c8ef6e108fb3f700b99cd68e5d57c408d6114851780dbc580be595c0eb");
+    // // Connect wallet to network
+    // _web3provider = JsonRpcProvider('https://data-seed-prebsc-2-s2.binance.org:8545/');
+    // _signer = wallet.connect(_web3provider);
     // walletWithProvider;
 
     // Get account balance
@@ -233,6 +242,7 @@ class TodoListModel extends ChangeNotifier {
   //   await getTodos();
   // }
 
+  @override
   getTodos() async {
     debugPrint("gettodos");
     final tc = await _contract.call<BigInt>(
@@ -305,6 +315,7 @@ class TodoListModel extends ChangeNotifier {
     return false;
   }
 
+  @override
   addTask(String taskNameData) async {
     isLoading = true;
     notifyListeners();
@@ -331,6 +342,7 @@ class TodoListModel extends ChangeNotifier {
     await getTodos();
   }
 
+  @override
   updateTask(int id, String taskNameData) async {
     isLoading = true;
     notifyListeners();
@@ -354,6 +366,7 @@ class TodoListModel extends ChangeNotifier {
     await getTodos();
   }
 
+  @override
   deleteTask(int id) async {
     isLoading = true;
     notifyListeners();
@@ -417,11 +430,4 @@ class TodoListModel extends ChangeNotifier {
     debugPrint("gasPrice: ${await web3provider.getBlockNumber()}"); // 5000000000
     // wc.disconnect();
   }
-}
-
-class Task {
-  final int id;
-  final String taskName;
-  final bool isCompleted;
-  Task({this.id, this.taskName, this.isCompleted});
 }
