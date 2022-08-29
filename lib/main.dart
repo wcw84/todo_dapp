@@ -4,12 +4,10 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_dapp/TodoList.dart';
-// import 'package:todo_dapp/TestMetamask.dart';
 import 'package:todo_dapp/TodoListModel.dart';
 
 void main() {
   runApp(MyApp());
-  // testMetaMask();
 
   if (kIsWeb) {
     debugPrint("isWeb");
@@ -20,7 +18,6 @@ void main() {
   } else if (defaultTargetPlatform == TargetPlatform.macOS) {
     debugPrint("isMacOS");
   }
-
 }
 
 class MyApp extends StatelessWidget {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_dapp/TodoListModel.dart';
+import 'package:flutter/foundation.dart';
 
 showTodoBottomSheet(BuildContext context, {Task task}) {
   TextEditingController _titleController =
@@ -32,7 +33,7 @@ showTodoBottomSheet(BuildContext context, {Task task}) {
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.all(Radius.circular(20)),
                   ),
-                  contentPadding: const EdgeInsets.only(
+                  contentPadding: EdgeInsets.only(
                     left: 14.0,
                     bottom: 20.0,
                     top: 20.0,
@@ -42,26 +43,27 @@ showTodoBottomSheet(BuildContext context, {Task task}) {
                     fontSize: 20,
                   ),
                 ),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                 ),
               ),
-              SizedBox(height: 12),
-              if (listModel.isConnected == false)
-                buildButton("Connect Wallet", () {
+              const SizedBox(height: 12),
+              if (!kIsWeb) //not h5
+                if (listModel.isConnected == false)
+                  buildButton("Connect Wallet", () {
                   // listModel.connectWallet();
-                  listModel.connectWallet();
-                  Navigator.pop(context);
-                })
-              else
-                buildButton("Disconnect Wallet", () {
-                  listModel.disConnectWallet();
-                  Navigator.pop(context);
-                }),
-              buildButton("Test Send", () {
-                listModel.test();
-                Navigator.pop(context);
-              }),
+                    listModel.connectWallet();
+                    Navigator.pop(context);
+                  })
+                else
+                  buildButton("Disconnect Wallet", () {
+                    listModel.disConnectWallet();
+                    Navigator.pop(context);
+                  }),
+              // buildButton("Test Send", () {
+              //   listModel.test();
+              //   Navigator.pop(context);
+              // }),
               if (task == null)
                 buildButton("Created", () {
                   listModel.addTask(_titleController.text);

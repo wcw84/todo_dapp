@@ -54,7 +54,6 @@ class TodoListModel extends ChangeNotifier {
   }
 
   bool get isConnected => _connector != null && _connector.connected;
-  // bool isConnected = false;
   String _externalWalletUri = '';
   Future<void> callExternalWallet() async {
     // const String prefix = 'https://metamask.app.link/dapp';

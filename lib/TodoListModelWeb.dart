@@ -15,6 +15,8 @@ class TodoListModel extends ChangeNotifier {
   bool isLoading = true;
   int taskCount = 0;
 
+  bool isConnected = false;
+
   String _ownAddress = "";
   Provider _web3provider = null;
   Signer _signer = null;
@@ -51,6 +53,11 @@ class TodoListModel extends ChangeNotifier {
 
   }
 
+  Future<void> disConnectWallet() async {
+
+  }
+  Future<void> connectWallet() async {
+  }
   Future<void> init() async {
     debugPrint("TodoListModel_metamask init");
 
