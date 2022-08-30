@@ -7,7 +7,7 @@ abstract class TodoListModelBase  {
   int taskCount = 0;
   bool get isConnected;
 
-  Future<void> callExternalWallet() ;
+  // Future<void> callExternalWallet() ;
   // Future<void> test() ;
   Future<void> disConnectWallet();
   Future<void> connectWallet();

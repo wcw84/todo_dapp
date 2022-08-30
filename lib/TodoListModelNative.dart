@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:core';
-// import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
@@ -59,8 +58,8 @@ class TodoListModel extends ChangeNotifier implements TodoListModelBase {
   @override
   get isConnected => _connector != null && _connector.connected;
   String _externalWalletUri = '';
-  @override
-  Future<void> callExternalWallet() async {
+
+  Future<void> _callExternalWallet() async {
     // const String prefix = 'https://metamask.app.link/dapp';
     debugPrint("callExternalWallet: $_externalWalletUri");
     //https://metamask.app.link/dapp/payment/0x16bB66eAF844e9c095929Ee6693dccbbD8ce6643?amount=10000
@@ -240,7 +239,7 @@ class TodoListModel extends ChangeNotifier implements TodoListModelBase {
             _externalWalletUri = uri;
             debugPrint("uri=$uri");
             // AppMehtods.openUrl(uri); //call the launchUrl(uri) method
-            callExternalWallet();
+            _callExternalWallet();
           }
       );
       //stuck here????
@@ -444,7 +443,7 @@ class TodoListModel extends ChangeNotifier implements TodoListModelBase {
     debugPrint("[ethSendTxWrapped] fn=$fn, params=$params");
     String data = hex.encode(List<int>.from(fn.encodeCall(params)));
     debugPrint("data: $data");
-    callExternalWallet();
+    _callExternalWallet();
     final result = await connector.sendCustomRequest(
         method: 'eth_sendTransaction',
         params: [{
